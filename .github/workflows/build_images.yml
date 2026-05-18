@@ -1,0 +1,50 @@
+name: Build custom VM images
+
+on:
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: oracle-vm-2cpu-8gb-x86-64
+    name: "${{ matrix.distro }}"
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - "fedora-current"
+          - "fedora-prior"
+          - "fedora-rawhide"
+          - "debian-sid"
+    container:
+      image: fedora:latest
+      options: --privileged
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6.0.2
+      - name: Install Dependencies
+        # kernel is needed by guestfs-tools
+        run: dnf install -y kernel kernel-core kernel-modules kernel-modules-core guestfs-tools sequoia-sq
+
+      # passt seems to break networking, TODO figure out what is wrong, for now removing it makes guestfs tools fall back to libslirp
+      - name: build image
+        run: |
+          rm -f /usr/bin/passt
+          useradd builder
+          chown -R builder:builder .
+          su builder -c './images/build.sh "$DISTRO"'
+          stat "images/output/${{ matrix.distro }}.x86_64.qcow2"
+          du "images/output/${{ matrix.distro }}.x86_64.qcow2"
+        env:
+          # libvirt odes not work since it is not running inside the container
+          LIBGUESTFS_BACKEND: direct
+          DISTRO: "${{ matrix.distro }}"
+
+      - name: Upload image as artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
+        with:
+          # FIXME update name here if we add aarch64 support
+          path: "images/output/${{ matrix.distro }}.x86_64.qcow2"
+          archive: false
+          if-no-files-found: error

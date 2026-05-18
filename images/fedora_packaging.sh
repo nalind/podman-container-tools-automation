@@ -13,6 +13,7 @@ OS_REL_VER="$OS_RELEASE_ID-$OS_RELEASE_VER"
 
 BUILD_NAME="${1:?Build name is not defined, must be given as first arg}"
 
+
 # Only enable updates-testing on all 'current stable Fedora, i.e. not
 # rawhide  or N-1. Historically there have been many
 # problems with non-uniform behavior when both supported Fedora releases
