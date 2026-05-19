@@ -173,3 +173,35 @@ if ((CONTAINER==0)) && [[ ${#DOWNLOAD_PACKAGES[@]} -gt 0 ]]; then
     ln -s /var/cache/apt/archives "$PACKAGE_DOWNLOAD_DIR"
     apt-get -q -y install --download-only "${DOWNLOAD_PACKAGES[@]}"
 fi
+
+# Generate en_US.UTF-8 locale as this is required for a podman test (https://github.com/containers/podman/pull/19635).
+sed -i '/en_US.UTF-8/s/^#//g' /etc/locale.gen
+locale-gen
+
+# Debian doesn't mount tmpfs on /tmp as default but we want this to speed tests up so
+# they don't have to write to persistent disk.
+# https://github.com/containers/podman/pull/22533
+mkdir -p /etc/systemd/system/local-fs.target.wants/
+cat <<EOF | tee /etc/systemd/system/tmp.mount
+[Unit]
+Description=Temporary Directory /tmp
+ConditionPathIsSymbolicLink=!/tmp
+DefaultDependencies=no
+Conflicts=umount.target
+Before=local-fs.target umount.target
+After=swap.target
+
+[Mount]
+What=tmpfs
+Where=/tmp
+Type=tmpfs
+Options=size=75%%,mode=1777
+EOF
+# enable the unit by default
+ln -s ../tmp.mount /etc/systemd/system/local-fs.target.wants/tmp.mount
+
+
+# dnsmasq is set to bind 0.0.0.0:53, that will conflict with our dns tests.
+# We don't need a local resolver.
+systemctl disable dnsmasq.service
+systemctl mask dnsmasq.service

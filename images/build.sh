@@ -130,11 +130,24 @@ virt-resize --expand "$ROOTFS_DISK_PARTITION" "$image_path" "$resize_image_path"
 # Move the resized copy over the old name to not have two images around.
 mv "$resize_image_path" "$image_path"
 
+## TEMP workaround build netavark v2 until that land in the real images.
+nv_checkout=$(mktemp -d --tmpdir=/var/tmp netavark.XXXXXX)
+trap "rm -rf $nv_checkout" EXIT
+git clone https://github.com/containers/netavark/ "$nv_checkout"
+
+(
+    cd "$nv_checkout"
+    make build
+)
+
 # Upload and run our install script in the guest.
 virt-customize --smp 2 --memsize 2560 \
     --upload "$SOURCE_DIR/$install_script:/tmp/install.sh" \
     --mkdir /var/cache/local-registry \
     --upload "$SOURCE_DIR/local-cache-registry:/var/cache/local-registry/local-cache-registry" \
+    --mkdir /usr/local/libexec/podman \
+    --upload "$nv_checkout/bin/netavark:/usr/local/libexec/podman/netavark" \
+    --run-command "chmod +x /usr/local/libexec/podman/netavark" \
     --run-command "chmod +x /tmp/install.sh && /tmp/install.sh $BUILD_NAME" \
     --run-command "chmod +x /var/cache/local-registry/local-cache-registry && /var/cache/local-registry/local-cache-registry initialize" \
     -a "$image_path"
