@@ -18,7 +18,7 @@ DH_PFX="MacM1"
 
 # Only manage dedicated hosts with the following tag & value
 DH_REQ_TAG="purpose"
-DH_REQ_VAL="github"
+DH_REQ_VAL="prod"
 
 # Path to file recording the most recent state of each dedicated host.
 # Format is simply one line per dedicated host, with it's name, instance id, start
@@ -64,6 +64,7 @@ SETUP_SCRIPT="$LIB_DIRPATH/setup.sh"
 SPOOL_SCRIPT="$LIB_DIRPATH/service_pool.sh"
 SHDWN_SCRIPT="$LIB_DIRPATH/shutdown.sh"
 CIENV_SCRIPT="$LIB_DIRPATH/ci_env.sh"
+CLEANUP_HOOK_SCRIPT="$LIB_DIRPATH/cleanup_hook.sh"
 
 # Set to 1 to enable debugging
 X_DEBUG="${X_DEBUG:-0}"
