@@ -18,7 +18,7 @@ set -eo pipefail
 # shellcheck source-path=SCRIPTDIR
 source $(dirname ${BASH_SOURCE[0]})/pw_lib.sh
 
-L_DEBUG="${L_DEBUG:0}"
+L_DEBUG="${L_DEBUG:-0}"
 if ((L_DEBUG)); then
     X_DEBUG=1
     warn "Debugging enabled - temp. dir will not be cleaned up '$TEMPDIR' $(ctx 0)."
