@@ -90,7 +90,7 @@ modargs=(
     "DH_PFX              $INST_NAME     $DH_PFX"
     # The default launch template name includes $DH_PFX, ensure the production template name is used.
     # N/B: The old/unmodified pw_lib.sh is still loaded for the running script
-    "TEMPLATE_NAME       $TEMPLATE_NAME Cirrus${DH_PFX}PWinstance"
+    "TEMPLATE_NAME       $TEMPLATE_NAME GHA${DH_PFX}Runner"
     # Permit developer to use instance for up to 3 days max (orphan vm cleaning process will nail it after that).
     "PW_MAX_HOURS        72             $PW_MAX_HOURS"
     # Permit developer to execute as many Cirrus-CI tasks as they want w/o automatic shutdown.

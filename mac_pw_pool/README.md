@@ -34,7 +34,7 @@ detailed/specific information.
   * Disabled "Instance auto-placement", "Host recovery", and "Host maintenance"
   * Quantity: 1
   * Tags: `automation=false`, `purpose=prod`, and `PWPoolReady=true`
-* The EC2 `CirrusMacM1PWinstance` instance-template exists and sets:
+* The EC2 `GHAMacM1Runner` instance-template exists and sets:
   * Shutdown-behavior: terminate
   * Same "key pair" referenced under `Prerequisites`
   * All other required instance parameters complete
