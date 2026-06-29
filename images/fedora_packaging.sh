@@ -38,13 +38,11 @@ INSTALL_PACKAGES=(\
     automake
     bash-completion
     bats
-    bridge-utils
     btrfs-progs-devel
     buildah
     bzip2
     catatonit
     conmon
-    containernetworking-plugins
     containers-common
     criu
     crun
@@ -74,11 +72,9 @@ INSTALL_PACKAGES=(\
     golang-google-protobuf
     gpgme
     gpgme-devel
-    grubby
     hostname
     httpd-tools
     iproute
-    iptables
     jq
     koji
     krb5-workstation
@@ -134,7 +130,6 @@ INSTALL_PACKAGES=(\
     sequoia-sq
     ShellCheck
     skopeo
-    slirp4netns
     socat
     sqlite-libs
     sqlite-devel

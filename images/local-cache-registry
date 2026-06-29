@@ -16,6 +16,8 @@
 #
 ME=$(basename $0)
 
+set -e
+
 ###############################################################################
 # BEGIN defaults
 
@@ -163,22 +165,6 @@ function podman() {
               "$@"
 }
 
-###############
-#  must_pass  #  Run a command quietly; abort with error on failure
-###############
-function must_pass() {
-    local log=${PODMAN_TMPROOT}/log
-
-    "$@" &> $log
-    if [ $? -ne 0 ]; then
-        echo "$ME: Command failed: $*" >&2
-        cat $log                       >&2
-
-        # If we ever get here, it's a given that the registry is not running.
-        exit 1
-    fi
-}
-
 ###################
 #  wait_for_port  #  Returns once port is available on localhost
 ###################
@@ -221,18 +207,10 @@ function cache_image() {
     echo "...caching: $registry / $img"
 
     # FIXME: inspect, and only pull if missing?
-
-    for retry in 1 2 3 0;do
-        skopeo --registries-conf /dev/null \
-               copy --all \
-               docker://$registry/$img \
-               docker://127.0.0.1:${REGISTRY_PORT}/$img \
-            && return
-
-        sleep $((retry * 30))
-    done
-
-    die "Too many retries; unable to cache $registry/$img"
+    skopeo --registries-conf /dev/null \
+            copy --all --retry-times 3 \
+            docker://$registry/$img \
+            docker://127.0.0.1:${REGISTRY_PORT}/$img
 }
 
 ##################
@@ -263,9 +241,6 @@ function do_initialize() {
         die "this script must be run as root"
     fi
 
-    # For the next few commands, die on any error
-    set -e
-
     mkdir -p ${PODMAN_REGISTRY_WORKDIR}
 
     # Copy of this script
@@ -275,9 +250,7 @@ function do_initialize() {
     fi
 
     # Give it three tries, to compensate for flakes
-    podman pull ${PODMAN_REGISTRY_IMAGE}      &>/dev/null ||
-        podman pull ${PODMAN_REGISTRY_IMAGE}  &>/dev/null ||
-        must_pass podman pull ${PODMAN_REGISTRY_IMAGE}
+    podman pull --retry 3 ${PODMAN_REGISTRY_IMAGE}
 
     # Mount the registry image...
     registry_root=$(podman image mount ${PODMAN_REGISTRY_IMAGE})
@@ -296,7 +269,7 @@ function do_initialize() {
     # Generate that key and certificate that we just configured the
     # registry to use.
     mkdir -p /etc/local-registry && chmod 700 /etc/local-registry
-    must_pass openssl req -newkey rsa:4096 -nodes -sha256 -keyout /etc/local-registry/localhost.key -x509 -days 36525 -addext "subjectAltName = DNS:localhost, IP:127.0.0.1" -out /etc/local-registry/localhost.crt -subj "/CN=localhost"
+    openssl req -newkey rsa:4096 -nodes -sha256 -keyout /etc/local-registry/localhost.key -x509 -days 36525 -addext "subjectAltName = DNS:localhost, IP:127.0.0.1" -out /etc/local-registry/localhost.crt -subj "/CN=localhost"
     mkdir -p /etc/containers/certs.d/127.0.0.1:${REGISTRY_PORT}
     cp /etc/local-registry/localhost.crt /etc/containers/certs.d/127.0.0.1:${REGISTRY_PORT}/ca.crt
 
