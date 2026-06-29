@@ -221,18 +221,10 @@ function cache_image() {
     echo "...caching: $registry / $img"
 
     # FIXME: inspect, and only pull if missing?
-
-    for retry in 1 2 3 0;do
-        skopeo --registries-conf /dev/null \
-               copy --all \
-               docker://$registry/$img \
-               docker://127.0.0.1:${REGISTRY_PORT}/$img \
-            && return
-
-        sleep $((retry * 30))
-    done
-
-    die "Too many retries; unable to cache $registry/$img"
+    skopeo --registries-conf /dev/null \
+            copy --all --retry-times 3 \
+            docker://$registry/$img \
+            docker://127.0.0.1:${REGISTRY_PORT}/$img
 }
 
 ##################
@@ -275,9 +267,7 @@ function do_initialize() {
     fi
 
     # Give it three tries, to compensate for flakes
-    podman pull ${PODMAN_REGISTRY_IMAGE}      &>/dev/null ||
-        podman pull ${PODMAN_REGISTRY_IMAGE}  &>/dev/null ||
-        must_pass podman pull ${PODMAN_REGISTRY_IMAGE}
+    podman pull --retry 3 ${PODMAN_REGISTRY_IMAGE}
 
     # Mount the registry image...
     registry_root=$(podman image mount ${PODMAN_REGISTRY_IMAGE})
