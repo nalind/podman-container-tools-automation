@@ -46,6 +46,7 @@ INSTALL_PACKAGES=(\
     file
     fuse3
     fuse-overlayfs
+    gawk
     gcc
     gettext
     git
