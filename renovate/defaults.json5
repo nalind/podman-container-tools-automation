@@ -93,6 +93,20 @@ and/or use the pre-commit hook: https://github.com/renovatebot/pre-commit-hooks
       // Podman's installer script will puke if there's a 'v' prefix, as represented
       // in upstream golangci/golangci-lint releases.
       "extractVersionTemplate": "v(?<version>.+)"
+    },
+
+    // Update automation repo releases in out tools, i.e. VM or container image updates
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^.github/workflows/*.yml$/"
+      ],
+      "matchStrings": [
+        "AUTOMATION_RELEASE:\\s+(?<currentValue>.+)\\s*"
+      ],
+      "depNameTemplate": "podman-container-tools/automation",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "loose",
     }
   ],
 
@@ -197,5 +211,25 @@ and/or use the pre-commit hook: https://github.com/renovatebot/pre-commit-hooks
       ]
     },
 
+
+    /*************************************************
+    ************ CI configuration options ************
+    **************************************************/
+
+    // Group together all CI VM image updates into a single PR.
+    // In case AUTOMATION_RELEASE is listed in several files.
+    {
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["/^.github/workflows/*.yml$/"],
+      "groupName": "CI VM Image",
+      // Renovate treats "20230120" as the version number, and
+      // maxMajorIncrement defaults to 500 = 5 months;
+      // updates after longer time than that would be ignored.
+      "maxMajorIncrement": 0,
+      // Somebody(s) need to check image update PRs as soon as they open.
+      "reviewers": ["Luap99", "timcoding1988"],
+      // Don't wait, roll out CI VM Updates immediately
+      "schedule": ["at any time"]
+    },
   ]
 }
