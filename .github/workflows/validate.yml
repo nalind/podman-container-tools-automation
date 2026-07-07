@@ -1,0 +1,29 @@
+name: "Validate"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  renovate:
+    name: "check renovate configs"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+      - name: "validate renovate configs"
+        run: |
+          for file in ./renovate/defaults.json5 .github/renovate.json5; do
+            podman run -v "$file":/usr/src/app/renovate.json5 ghcr.io/renovatebot/renovate:latest renovate-config-validator --strict
+          done
