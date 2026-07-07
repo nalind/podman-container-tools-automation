@@ -80,7 +80,9 @@ and/or use the pre-commit hook: https://github.com/renovatebot/pre-commit-hooks
     // referenced in their Makefile.
     {
       "customType": "regex",
-      "fileMatch": "^Makefile$",
+      "managerFilePatterns": [
+        "/^Makefile$/"
+      ],
       // make ignores whitespace around the value, make renovate do the same.
       "matchStrings": [
         "GOLANGCI_LINT_VERSION\\s+:=\\s+(?<currentValue>.+)\\s*"
