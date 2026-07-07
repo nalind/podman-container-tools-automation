@@ -17,7 +17,7 @@ and/or use the pre-commit hook: https://github.com/renovatebot/pre-commit-hooks
   configuration that otherwise would need to be\
   duplicated. It should be referenced from other\
   repositories renovate config under the 'extends'\
-  section as:  github>containers/automation//renovate/defaults.json5\
+  section as:  github>podman-container-tools/automation//renovate/defaults.json5\
   (optionally with a '#X.Y.Z' version-tag suffix).",
 
   /*************************************************
